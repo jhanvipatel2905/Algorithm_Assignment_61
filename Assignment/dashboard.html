@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Algorithm & Complexity Analytics Portal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .bar {
+      transition: height 0.15s ease, background-color 0.15s ease;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans flex flex-col">
+  <!-- Top Navigation & Tab Bar -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50 px-6 py-3.5 flex flex-wrap items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <div class="w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></div>
+      <div>
+        <h1 class="text-lg font-bold text-white tracking-tight">Discrete Math & Algorithm Suite</h1>
+        <p class="text-xs text-slate-400">Rosen Chapter 3: Analytical Report & Empirical Dashboard</p>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="flex items-center bg-slate-800/80 p-1 rounded-lg border border-slate-700/60 text-xs font-medium">
+      <button id="tabBtnDashboard" onclick="switchTab('dashboard')" class="px-4 py-1.5 rounded-md bg-indigo-600 text-white shadow-sm transition">
+        Interactive Dashboard
+      </button>
+      <button id="tabBtnReport" onclick="switchTab('report')" class="px-4 py-1.5 rounded-md text-slate-400 hover:text-white transition">
+        Analytical Note (PDF / LaTeX)
+      </button>
+    </div>
+  </header>
+
+  <!-- TAB 1: INTERACTIVE DASHBOARD -->
+  <main id="tabDashboard" class="flex-1 max-w-7xl w-full mx-auto p-6 space-y-6">
+    <!-- Control Bar -->
+    <section class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg">
+      <div class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-6 gap-4 items-end">
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Algorithm</label>
+          <select id="algoSelect" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500">
+            <optgroup label="Searching">
+              <option value="linear">Linear Search — O(n)</option>
+              <option value="binary">Binary Search — O(log n)</option>
+            </optgroup>
+            <optgroup label="Sorting">
+              <option value="bubble" selected>Bubble Sort — O(n²)</option>
+              <option value="insertion">Insertion Sort — O(n²)</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Array Size (<span id="sizeVal">25</span>)</label>
+          <input type="range" id="sizeSlider" min="10" max="60" value="25" class="w-full accent-indigo-500 cursor-pointer" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Speed (<span id="speedVal">40ms</span>)</label>
+          <input type="range" id="speedSlider" min="5" max="200" value="40" class="w-full accent-indigo-500 cursor-pointer" />
+        </div>
+
+        <div id="targetWrapper" class="hidden">
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Target Element</label>
+          <input type="number" id="targetInput" value="50" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500" />
+        </div>
+
+        <div class="flex gap-2 col-span-1 md:col-span-2">
+          <button id="btnGenerate" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2 rounded-lg text-sm font-medium transition">Reset</button>
+          <button id="btnPlay" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">Run Visualizer</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Visualizer & Live Metrics -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <section class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col justify-between">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+          <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider">Step-By-Step Array Execution</h2>
+          <div class="flex items-center gap-4 text-xs font-mono">
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-indigo-500"></span> Unsorted</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-amber-400"></span> Active</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-emerald-400"></span> Sorted / Found</span>
+          </div>
+        </div>
+
+        <div id="visualizerContainer" class="h-64 flex items-end justify-center gap-1 px-2 pt-4 bg-slate-950/60 rounded-lg border border-slate-800/80"></div>
+
+        <div class="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+          <span id="logStatus">Ready to execute.</span>
+          <span id="stepCounter" class="font-mono">Step: 0</span>
+        </div>
+      </section>
+
+      <section class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
+        <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider border-b border-slate-800 pb-3">Operational Complexity</h2>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="bg-slate-800/60 border border-slate-700/60 p-3 rounded-lg">
+            <span class="text-xs text-slate-400 block">Comparisons</span>
+            <span id="metricComparisons" class="text-2xl font-mono font-bold text-amber-400">0</span>
+          </div>
+          <div class="bg-slate-800/60 border border-slate-700/60 p-3 rounded-lg">
+            <span class="text-xs text-slate-400 block">Swaps / Shifts</span>
+            <span id="metricSwaps" class="text-2xl font-mono font-bold text-indigo-400">0</span>
+          </div>
+          <div class="bg-slate-800/60 border border-slate-700/60 p-3 rounded-lg">
+            <span class="text-xs text-slate-400 block">Worst-Case Time</span>
+            <span id="metricWorstCase" class="text-base font-mono font-bold text-red-400">O(n²)</span>
+          </div>
+          <div class="bg-slate-800/60 border border-slate-700/60 p-3 rounded-lg">
+            <span class="text-xs text-slate-400 block">Auxiliary Space</span>
+            <span id="metricSpace" class="text-base font-mono font-bold text-emerald-400">O(1)</span>
+          </div>
+        </div>
+        <div class="bg-slate-950/70 border border-slate-800 p-4 rounded-lg space-y-2 text-xs">
+          <div class="flex justify-between text-slate-300">
+            <span class="text-slate-500">Best Case:</span>
+            <span id="metricBestCase" class="font-mono text-emerald-400 font-semibold">O(n)</span>
+          </div>
+          <div class="flex justify-between text-slate-300">
+            <span class="text-slate-500">Average Case:</span>
+            <span id="metricAvgCase" class="font-mono text-amber-400 font-semibold">O(n²)</span>
+          </div>
+          <div class="flex justify-between text-slate-300">
+            <span class="text-slate-500">Paradigm:</span>
+            <span id="metricParadigm" class="text-slate-200 font-medium">Comparison Sort</span>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Chart: Rosen Ch. 3 Growth of Functions -->
+    <section class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-3">
+      <div class="border-b border-slate-800 pb-2">
+        <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider">Asymptotic Growth Functions (Rosen Chapter 3)</h2>
+        <p class="text-xs text-slate-500">Hierarchy: O(1) &lt; O(log n) &lt; O(n) &lt; O(n log n) &lt; O(n²)</p>
+      </div>
+      <div class="h-64 w-full">
+        <canvas id="growthChart"></canvas>
+      </div>
+    </section>
+  </main>
+
+  <!-- TAB 2: EMBEDDED PDF & ANALYTICAL REPORT -->
+  <main id="tabReport" class="hidden flex-1 max-w-7xl w-full mx-auto p-6 space-y-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-wrap items-center justify-between gap-4">
+      <div>
+        <h2 class="text-base font-bold text-white">Part 1: Analytical Note (Rosen Chapter 3)</h2>
+      </div>
+      <div class="flex gap-2">
+        <a href="Algorithm_Assignment_61.pdf" download="Algorithm_Assignment_61.pdf" class="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-4 py-2 rounded-lg transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          Download PDF
+        </a>
+      </div>
+    </div>
+
+    <!-- Embedded PDF Viewer -->
+    <div class="w-full bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-2xl h-[800px]">
+      <iframe src="Algorithm_Assignment_61.pdf" class="w-full h-full border-0">
+        <div class="p-8 text-center text-slate-400">
+          <p class="text-sm">Your browser does not support inline PDFs.</p>
+          <a href="Algorithm_Assignment_61.pdf" class="text-indigo-400 underline text-xs mt-2 inline-block">Click here to open Algorithm_Assignment_61.pdf directly</a>
+        </div>
+      </iframe>
+    </div>
+  </main>
+
+  <script>
+    // Tab Switching
+    function switchTab(tab) {
+      const tabDash = document.getElementById('tabDashboard');
+      const tabRep = document.getElementById('tabReport');
+      const btnDash = document.getElementById('tabBtnDashboard');
+      const btnRep = document.getElementById('tabBtnReport');
+
+      if (tab === 'dashboard') {
+        tabDash.classList.remove('hidden');
+        tabRep.classList.add('hidden');
+        btnDash.className = 'px-4 py-1.5 rounded-md bg-indigo-600 text-white shadow-sm transition';
+        btnRep.className = 'px-4 py-1.5 rounded-md text-slate-400 hover:text-white transition';
+      } else {
+        tabDash.classList.add('hidden');
+        tabRep.classList.remove('hidden');
+        btnRep.className = 'px-4 py-1.5 rounded-md bg-indigo-600 text-white shadow-sm transition';
+        btnDash.className = 'px-4 py-1.5 rounded-md text-slate-400 hover:text-white transition';
+      }
+    }
+
+    // State Variables
+    let array = [];
+    let isRunning = false;
+    let comparisons = 0;
+    let swaps = 0;
+    let delay = 40;
+
+    // Elements
+    const container = document.getElementById('visualizerContainer');
+    const algoSelect = document.getElementById('algoSelect');
+    const sizeSlider = document.getElementById('sizeSlider');
+    const sizeVal = document.getElementById('sizeVal');
+    const speedSlider = document.getElementById('speedSlider');
+    const speedVal = document.getElementById('speedVal');
+    const btnPlay = document.getElementById('btnPlay');
+    const btnGenerate = document.getElementById('btnGenerate');
+    const logStatus = document.getElementById('logStatus');
+    const stepCounter = document.getElementById('stepCounter');
+    const targetWrapper = document.getElementById('targetWrapper');
+    const targetInput = document.getElementById('targetInput');
+
+    const metricComparisons = document.getElementById('metricComparisons');
+    const metricSwaps = document.getElementById('metricSwaps');
+    const metricWorstCase = document.getElementById('metricWorstCase');
+    const metricBestCase = document.getElementById('metricBestCase');
+    const metricAvgCase = document.getElementById('metricAvgCase');
+    const metricSpace = document.getElementById('metricSpace');
+    const metricParadigm = document.getElementById('metricParadigm');
+
+    const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+    function updateAlgoMetadata() {
+      const algo = algoSelect.value;
+      if (algo === 'linear') {
+        targetWrapper.classList.remove('hidden');
+        metricWorstCase.textContent = 'O(n)';
+        metricBestCase.textContent = 'O(1)';
+        metricAvgCase.textContent = 'O(n)';
+        metricSpace.textContent = 'O(1)';
+        metricParadigm.textContent = 'Brute-Force Search';
+      } else if (algo === 'binary') {
+        targetWrapper.classList.remove('hidden');
+        metricWorstCase.textContent = 'O(log n)';
+        metricBestCase.textContent = 'O(1)';
+        metricAvgCase.textContent = 'O(log n)';
+        metricSpace.textContent = 'O(1)';
+        metricParadigm.textContent = 'Divide & Conquer';
+      } else if (algo === 'bubble') {
+        targetWrapper.classList.add('hidden');
+        metricWorstCase.textContent = 'O(n²)';
+        metricBestCase.textContent = 'O(n)';
+        metricAvgCase.textContent = 'O(n²)';
+        metricSpace.textContent = 'O(1)';
+        metricParadigm.textContent = 'Comparison Sort';
+      } else if (algo === 'insertion') {
+        targetWrapper.classList.add('hidden');
+        metricWorstCase.textContent = 'O(n²)';
+        metricBestCase.textContent = 'O(n)';
+        metricAvgCase.textContent = 'O(n²)';
+        metricSpace.textContent = 'O(1)';
+        metricParadigm.textContent = 'Incremental Sort';
+      }
+    }
+
+    function generateArray() {
+      if (isRunning) return;
+      const size = parseInt(sizeSlider.value);
+      array = [];
+      const algo = algoSelect.value;
+
+      for (let i = 0; i < size; i++) {
+        array.push(Math.floor(Math.random() * 90) + 10);
+      }
+
+      if (algo === 'binary') {
+        array.sort((a, b) => a - b);
+        targetInput.value = array[Math.floor(Math.random() * array.length)];
+      }
+
+      comparisons = 0;
+      swaps = 0;
+      updateMetrics();
+      renderBars();
+      logStatus.textContent = 'Generated new array of size ' + size;
+      stepCounter.textContent = 'Step: 0';
+    }
+
+    function renderBars(activeIndices = [], foundIndex = -1) {
+      container.innerHTML = '';
+      const maxVal = Math.max(...array, 100);
+
+      array.forEach((val, idx) => {
+        const bar = document.createElement('div');
+        bar.className = 'bar flex-1 rounded-t-sm flex items-end justify-center text-[9px] font-mono pb-1 text-slate-300';
+        bar.style.height = `${(val / maxVal) * 100}%`;
+
+        if (idx === foundIndex) {
+          bar.classList.add('bg-emerald-400', 'text-slate-900', 'font-bold');
+        } else if (activeIndices.includes(idx)) {
+          bar.classList.add('bg-amber-400', 'text-slate-900', 'font-bold');
+        } else {
+          bar.classList.add('bg-indigo-600');
+        }
+
+        if (array.length <= 30) {
+          bar.textContent = val;
+        }
+        container.appendChild(bar);
+      });
+    }
+
+    function updateMetrics(step = 0) {
+      metricComparisons.textContent = comparisons;
+      metricSwaps.textContent = swaps;
+      if (step > 0) stepCounter.textContent = `Step: ${step}`;
+    }
+
+    async function runLinearSearch() {
+      const target = parseInt(targetInput.value);
+      let step = 0;
+      for (let i = 0; i < array.length; i++) {
+        if (!isRunning) return;
+        step++;
+        comparisons++;
+        updateMetrics(step);
+        renderBars([i]);
+        logStatus.textContent = `Examining index ${i} (${array[i]}) vs target ${target}`;
+        await sleep(delay);
+
+        if (array[i] === target) {
+          renderBars([], i);
+          logStatus.textContent = `Target ${target} located at index ${i}!`;
+          return;
+        }
+      }
+      renderBars();
+      logStatus.textContent = `Target ${target} not found in array.`;
+    }
+
+    async function runBinarySearch() {
+      const target = parseInt(targetInput.value);
+      let low = 0, high = array.length - 1, step = 0;
+
+      while (low <= high) {
+        if (!isRunning) return;
+        step++;
+        const mid = Math.floor((low + high) / 2);
+        comparisons++;
+        updateMetrics(step);
+        renderBars([low, mid, high]);
+        logStatus.textContent = `Interval [${low}, ${high}] -> Mid ${mid} (${array[mid]})`;
+        await sleep(delay);
+
+        if (array[mid] === target) {
+          renderBars([], mid);
+          logStatus.textContent = `Target ${target} located at index ${mid}!`;
+          return;
+        } else if (array[mid] < target) {
+          low = mid + 1;
+        } else {
+          high = mid - 1;
+        }
+      }
+      renderBars();
+      logStatus.textContent = `Target ${target} not found in array.`;
+    }
+
+    async function runBubbleSort() {
+      const n = array.length;
+      let step = 0;
+      for (let i = 0; i < n - 1; i++) {
+        for (let j = 0; j < n - i - 1; j++) {
+          if (!isRunning) return;
+          step++;
+          comparisons++;
+          renderBars([j, j + 1]);
+          await sleep(delay);
+
+          if (array[j] > array[j + 1]) {
+            swaps++;
+            let temp = array[j];
+            array[j] = array[j + 1];
+            array[j + 1] = temp;
+            renderBars([j, j + 1]);
+          }
+          updateMetrics(step);
+        }
+      }
+      renderBars();
+      logStatus.textContent = 'Bubble Sort completed.';
+    }
+
+    async function runInsertionSort() {
+      const n = array.length;
+      let step = 0;
+      for (let i = 1; i < n; i++) {
+        let key = array[i], j = i - 1;
+        step++;
+        while (j >= 0 && array[j] > key) {
+          if (!isRunning) return;
+          comparisons++;
+          swaps++;
+          array[j + 1] = array[j];
+          renderBars([j, j + 1]);
+          updateMetrics(step);
+          await sleep(delay);
+          j--;
+        }
+        if (j >= 0) comparisons++;
+        array[j + 1] = key;
+        renderBars([j + 1]);
+        updateMetrics(step);
+        await sleep(delay);
+      }
+      renderBars();
+      logStatus.textContent = 'Insertion Sort completed.';
+    }
+
+    btnPlay.addEventListener('click', async () => {
+      if (isRunning) return;
+      isRunning = true;
+      btnPlay.disabled = true;
+      btnGenerate.disabled = true;
+      algoSelect.disabled = true;
+      btnPlay.classList.add('opacity-50', 'cursor-not-allowed');
+
+      const algo = algoSelect.value;
+      if (algo === 'linear') await runLinearSearch();
+      else if (algo === 'binary') await runBinarySearch();
+      else if (algo === 'bubble') await runBubbleSort();
+      else if (algo === 'insertion') await runInsertionSort();
+
+      isRunning = false;
+      btnPlay.disabled = false;
+      btnGenerate.disabled = false;
+      algoSelect.disabled = false;
+      btnPlay.classList.remove('opacity-50', 'cursor-not-allowed');
+    });
+
+    algoSelect.addEventListener('change', () => {
+      updateAlgoMetadata();
+      generateArray();
+    });
+
+    sizeSlider.addEventListener('input', (e) => {
+      sizeVal.textContent = e.target.value;
+      generateArray();
+    });
+
+    speedSlider.addEventListener('input', (e) => {
+      delay = parseInt(e.target.value);
+      speedVal.textContent = `${delay}ms`;
+    });
+
+    btnGenerate.addEventListener('click', generateArray);
+
+    // Chart.js Setup
+    const ctx = document.getElementById('growthChart').getContext('2d');
+    const nLabels = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50];
+
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: nLabels,
+        datasets: [
+          {
+            label: 'O(log n)',
+            data: nLabels.map(n => Math.log2(n)),
+            borderColor: '#38bdf8',
+            tension: 0.3,
+            borderWidth: 2,
+            pointRadius: 2
+          },
+          {
+            label: 'O(n)',
+            data: nLabels.map(n => n),
+            borderColor: '#34d399',
+            tension: 0.3,
+            borderWidth: 2,
+            pointRadius: 2
+          },
+          {
+            label: 'O(n log n)',
+            data: nLabels.map(n => n * Math.log2(n)),
+            borderColor: '#fbbf24',
+            tension: 0.3,
+            borderWidth: 2,
+            pointRadius: 2
+          },
+          {
+            label: 'O(n²)',
+            data: nLabels.map(n => n * n),
+            borderColor: '#f87171',
+            tension: 0.3,
+            borderWidth: 2,
+            pointRadius: 2
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { labels: { color: '#94a3b8' } }
+        },
+        scales: {
+          x: {
+            title: { display: true, text: 'n (Input Size)', color: '#64748b' },
+            grid: { color: '#1e293b' },
+            ticks: { color: '#94a3b8' }
+          },
+          y: {
+            title: { display: true, text: 'Operations', color: '#64748b' },
+            grid: { color: '#1e293b' },
+            ticks: { color: '#94a3b8' },
+            max: 2500
+          }
+        }
+      }
+    });
+
+    updateAlgoMetadata();
+    generateArray();
+  </script>
+</body>
+</html>

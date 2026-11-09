@@ -1,0 +1,134 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{graphicx}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{geometry}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{listings}
+
+\geometry{top=1in, bottom=1in, left=1in, right=1in}
+
+\title{\textbf{SC612 Assignment: Algorithms, Growth of Functions, and Complexity}}
+\author{\textbf{Jhanvi Patel} \\ Student ID: 202612061 \\ Course: Discrete Mathematics}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This analytical report reviews the theoretical foundations of algorithms based on Chapter 3 of Kenneth H. Rosen's \emph{Discrete Mathematics and Its Applications}. It examines the formal definition and fundamental properties of algorithms, surveys standard algorithmic categories, establishes asymptotic notation for the growth of functions, and evaluates algorithmic time and space complexity.
+\end{abstract}
+
+\section{Introduction: What is an Algorithm?}
+In computational mathematics and computer science, an \textbf{algorithm} is defined as a finite sequence of unambiguous instructions for solving a well-specified computational problem or performing a specific calculation. It takes an input from a valid domain, operates deterministically or non-deterministically through sequential states, and produces an output satisfying the desired objective.
+
+According to Rosen, any well-constructed algorithm must satisfy seven essential properties:
+\begin{enumerate}
+    \item \textbf{Input:} The algorithm must take zero or more explicitly defined quantities from a specified set.
+    \item \textbf{Output:} The algorithm must produce one or more quantities that have a specified relation to the inputs.
+    \item \textbf{Definiteness:} Every individual step in the execution sequence must be clear, precise, and unambiguous.
+    \item \textbf{Correctness:} The algorithm must produce the correct and intended output for all valid input instances.
+    \item \textbf{Finiteness:} For any legitimate input, the algorithm must terminate after a finite number of discrete computational steps.
+    \item \textbf{Effectiveness:} Each operation must be sufficiently basic that it can, in principle, be executed exactly in a finite amount of time by a human using paper and pencil.
+    \item \textbf{Generality:} The procedure must be applicable to all problems of the desired form, rather than being tailored exclusively to a single, isolated set of parameters.
+\end{enumerate}
+
+\section{Classification and Types of Algorithms}
+Algorithms are categorized according to their design strategies and the structural characteristics of the problems they address:
+
+\subsection{Searching Algorithms}
+Searching involves locating a target value $x$ within an ordered or unordered collection:
+\begin{itemize}
+    \item \textbf{Linear Search:} Compares the target sequentially against each element from the first to the last. It operates without requiring the data to be ordered.
+    \item \textbf{Binary Search:} Operates on a sorted sequence by comparing the search element with the median item. Based on this comparison, it halves the search interval iteratively until the element is located or the interval becomes empty.
+\end{itemize}
+
+\subsection{Sorting Algorithms}
+Sorting arranges a sequence of elements according to an established ordering relation (e.g., numerical or lexicographical):
+\begin{itemize}
+    \item \textbf{Bubble Sort:} Repeatedly traverses the list, compares adjacent elements, and swaps them if they appear in incorrect relative order.
+    \item \textbf{Insertion Sort:} Iterates through an array, progressively taking each element and inserting it into its proper position within the already sorted prefix.
+\end{itemize}
+
+\subsection{Greedy Algorithms}
+A greedy algorithm makes the choice that looks best at the immediate moment, optimizing locally with the objective of finding a globally optimal solution. A classical example analyzed in Chapter 3 is the \emph{Cashier's Change-Making Algorithm}, which iteratively chooses the largest available denomination that does not exceed the remaining sum to minimize the total count of coins returned.
+
+\subsection{Brute-Force Algorithms}
+Brute-force algorithms evaluate candidate solutions exhaustively and systematically until a solution satisfying all formal criteria is reached or the entire domain is ruled out. While simple to implement, their combinatorial expense often limits practical feasibility on large inputs.
+
+\section{Growth of Functions}
+To analyze algorithm efficiency independently of specific computer architectures or compiler implementations, theoretical computer science relies on asymptotic notation.
+
+\subsection{Asymptotic Notations}
+\begin{itemize}
+    \item \textbf{Big-$O$ Notation (Asymptotic Upper Bound):} Let $f$ and $g$ be functions from the set of integers or real numbers to the set of real numbers. We say that $f(x)$ is $O(g(x))$ if there exist positive constants $C$ and $k$ such that:
+    \begin{equation}
+        |f(x)| \le C |g(x)| \quad \text{whenever } x > k
+    \end{equation}
+    The pair $(C, k)$ are referred to as \emph{witnesses} to the relationship.
+    
+    \item \textbf{Big-$\Omega$ Notation (Asymptotic Lower Bound):} We write $f(x) \text{ is } \Omega(g(x))$ if there exist positive constants $C$ and $k$ such that:
+    \begin{equation}
+        |f(x)| \ge C |g(x)| \quad \text{whenever } x > k
+    \end{equation}
+    
+    \item \textbf{Big-$\Theta$ Notation (Asymptotic Tight Bound):} We say $f(x) \text{ is } \Theta(g(x))$ if $f(x)$ is both $O(g(x))$ and $\Omega(g(x))$. That is, there exist positive constants $C_1$, $C_2$, and $k$ such that:
+    \begin{equation}
+        C_1 |g(x)| \le |f(x)| \le C_2 |g(x)| \quad \text{whenever } x > k
+    \end{equation}
+\end{itemize}
+
+\subsection{Hierarchy of Standard Growth Rates}
+As input size $n$ approaches infinity, standard complexity functions follow this strict dominance hierarchy:
+\begin{equation}
+    O(1) < O(\log n) < O(n) < O(n \log n) < O(n^2) < O(n^c) < O(2^n) < O(n!)
+\end{equation}
+where $c > 2$. Algorithms with polynomial bounds $O(n^c)$ are classified as tractable, whereas exponential $O(2^n)$ or factorial $O(n!)$ growth rates are classified as intractable for large instances of $n$.
+
+\section{Algorithmic Complexity}
+Algorithmic efficiency is measured across two computational resources:
+\begin{enumerate}
+    \item \textbf{Time Complexity:} The total number of fundamental operations (e.g., comparisons, assignments, bit operations) executed as a function of the input size $n$.
+    \item \textbf{Space Complexity:} The total amount of physical working memory required during execution, excluding memory needed to store the original input itself.
+\end{enumerate}
+
+\subsection{Cases of Analysis}
+Because execution paths vary based on input distribution, complexity is analyzed through three cases:
+\begin{itemize}
+    \item \textbf{Worst-Case Complexity:} The maximum number of operations required over all possible inputs of size $n$. This establishes a guaranteed theoretical performance ceiling.
+    \item \textbf{Average-Case Complexity:} The expected number of operations averaged across all valid inputs of size $n$, assuming an underlying probability distribution (often uniform).
+    \item \textbf{Best-Case Complexity:} The minimum number of operations required under the most favorable input conditions.
+\end{itemize}
+
+\subsection{Complexity Summary Table}
+Table 1 outlines the standard time and auxiliary space complexities of classic algorithms covered in Rosen's text:
+
+\begin{table}[htbp]
+    \centering
+    \caption{Comparative Time and Space Complexities}
+    \label{tab:complexity}
+    \resizebox{\linewidth}{!}{%
+    \begin{tabular}{lcccc}
+        \toprule
+        \textbf{Algorithm} & \textbf{Best-Case Time} & \textbf{Average-Case Time} & \textbf{Worst-Case Time} & \textbf{Space Complexity} \\
+        \midrule
+        Linear Search          & $O(1)$                  & $O(n)$                     & $O(n)$                   & $O(1)$ \\
+        Binary Search          & $O(1)$                  & $O(\log n)$                & $O(\log n)$              & $O(1)$ \\
+        Bubble Sort            & $O(n)$                  & $O(n^2)$                   & $O(n^2)$                 & $O(1)$ \\
+        Insertion Sort         & $O(n)$                  & $O(n^2)$                   & $O(n^2)$                 & $O(1)$ \\
+        Matrix Multiplication & $O(n^3)$                & $O(n^3)$                   & $O(n^3)$                 & $O(1)$ \\
+        \bottomrule
+    \end{tabular}%
+    }
+\end{table}
+
+\begin{thebibliography}{9}
+\bibitem{rosen}
+Kenneth H. Rosen, \emph{Discrete Mathematics and Its Applications}, 8th ed., New York: McGraw-Hill Education, 2019, Chapter 3: ``Algorithms''.
+\bibitem{cormen}
+Thomas H. Cormen, Charles E. Leiserson, Ronald L. Rivest, and Clifford Stein, \emph{Introduction to Algorithms}, 4th ed., Cambridge, MA: The MIT Press, 2022.
+\end{thebibliography}
+
+\end{document}
